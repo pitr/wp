@@ -1,0 +1,4 @@
+=> / 🏠 Home
+=> /search Search Wikipedia
+
+{{.}}

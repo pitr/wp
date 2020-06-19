@@ -1,0 +1,4 @@
+# Wikipedia proxy
+
+=> /search Search Wikipedia
+=> https://github.com/pitr/wp Source code for this site

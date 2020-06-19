@@ -1,0 +1,10 @@
+# Wikipedia Search Results
+
+=> / 🏠 Home
+=> /search Search
+
+{{range .}}
+=> /en/{{.Path}} {{.Name}}
+{{else}}
+Nothing found :(
+{{end}}
