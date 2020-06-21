@@ -1,5 +1,5 @@
 => / 🏠 Home
-=> /search Search Wikipedia
+=> /{{.Lang}}/ Search Wikipedia
 
 # {{.Title}}
 {{.Body}}

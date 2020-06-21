@@ -1,10 +1,10 @@
 => / 🏠 Home
-=> /search Search
+=> /{{.Lang}}/ Search
 
 # Search Results for '{{.Query}}'
 
 {{range .Result}}
-=> /en/{{.Path}} {{.Name}}
+=> /{{$.Lang}}/{{.Path}} {{.Name}}
 {{else}}
 Nothing found :(
 {{end}}

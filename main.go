@@ -17,9 +17,13 @@ func main() {
 	g.Renderer = &Template{}
 
 	g.Handle("/", handleHome)
-	g.Handle("/search", handleSearch)
+	g.Handle("/search", func(c gig.Context) error {
+		// redirect old search path
+		return c.NoContent(gig.StatusRedirectPermanent, "/en/")
+	})
 	g.Handle("/robots.txt", handleRobot)
-	g.Handle("/en/*", handleShow)
+	g.Handle("/:lang/", handleSearch)
+	g.Handle("/:lang/*", handleShow)
 
 	panic(g.Run("wp.crt", "wp.key"))
 }
@@ -34,11 +38,13 @@ func handleHome(c gig.Context) error {
 }
 
 type searchResultWrapper struct {
-	Query  string
-	Result []searchResult
+	Query, Lang string
+	Result      []searchResult
 }
 
 func handleSearch(c gig.Context) error {
+	lang := c.Param("lang")
+
 	q, err := c.QueryString()
 	if err != nil {
 		return c.NoContent(gig.StatusInput, "Invalid search query, try again")
@@ -47,28 +53,29 @@ func handleSearch(c gig.Context) error {
 		return c.NoContent(gig.StatusInput, "Enter search query")
 	}
 
-	result, err := search(q)
+	result, err := search(lang, q)
 	if err != nil {
 		println(err.Error())
 		return gig.ErrPermanentFailure
 	}
 	return c.Render("search", &searchResultWrapper{
 		Query:  q,
+		Lang:   lang,
 		Result: result,
 	})
 }
 
 type showWrapper struct {
-	Title string
-	Body  string
+	Title, Body, Lang string
 }
 
 func handleShow(c gig.Context) error {
 	var (
+		lang = c.Param("lang")
 		name = c.Param("*")
 	)
 
-	wp, err := getClient("en")
+	wp, err := getClient(lang)
 	if err != nil {
 		return err
 	}
@@ -79,6 +86,7 @@ func handleShow(c gig.Context) error {
 	}
 
 	return c.Render("show", &showWrapper{
+		Lang:  lang,
 		Title: strings.ReplaceAll(name, "_", " "),
 		Body:  convert(page),
 	})

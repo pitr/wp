@@ -19,9 +19,6 @@ var (
 
 func getClient(lang string) (c *mwclient.Client, err error) {
 	var ok bool
-	if len(lang) != 2 {
-		return nil, badLanguageError
-	}
 	if c, ok = wpClients[lang]; ok {
 		return
 	}
@@ -38,8 +35,8 @@ type searchResult struct {
 	Path string
 }
 
-func search(q string) ([]searchResult, error) {
-	c, err := getClient("en")
+func search(lang, q string) ([]searchResult, error) {
+	c, err := getClient(lang)
 	if err != nil {
 		return nil, err
 	}
