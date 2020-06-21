@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/pitr/gig"
 )
 
@@ -56,6 +58,11 @@ func handleSearch(c gig.Context) error {
 	})
 }
 
+type showWrapper struct {
+	Title string
+	Body  string
+}
+
 func handleShow(c gig.Context) error {
 	var (
 		name = c.Param("*")
@@ -71,5 +78,8 @@ func handleShow(c gig.Context) error {
 		return err
 	}
 
-	return c.Render("show", convert(page))
+	return c.Render("show", &showWrapper{
+		Title: strings.ReplaceAll(name, "_", " "),
+		Body:  convert(page),
+	})
 }

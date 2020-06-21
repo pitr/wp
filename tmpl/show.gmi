@@ -1,4 +1,5 @@
 => / 🏠 Home
 => /search Search Wikipedia
 
-{{.}}
+# {{.Title}}
+{{.Body}}

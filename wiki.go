@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"cgt.name/pkg/go-mwclient"
@@ -37,42 +38,42 @@ type searchResult struct {
 	Path string
 }
 
-func search(q string) ([]searchResult,error) {
+func search(q string) ([]searchResult, error) {
 	c, err := getClient("en")
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	resp, err := c.GetRaw(map[string]string{
 		"action": "opensearch",
 		"search": q,
 	})
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	val, err := jason.NewValueFromBytes(resp)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	arr, err := val.Array()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	arr, err = arr[1].Array()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	var results []searchResult
 	for _, el := range arr {
 		s, err := el.String()
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
 		results = append(results, searchResult{
 			Name: s,
-			Path: strings.ReplaceAll(s," ","_"),
+			Path: strings.ReplaceAll(s, " ", "_"),
 		})
 	}
-	return results,nil
+	return results, nil
 }
 
 func convert(in string) string {
@@ -251,6 +252,7 @@ func newFooter() *footer {
 }
 
 func (f *footer) addLink(name, href string) {
+	href = url.PathEscape(href)
 	f.buf.WriteString(fmt.Sprintf("=> %s %s\n", href, name))
 }
 
