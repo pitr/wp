@@ -31,6 +31,11 @@ func handleHome(c gig.Context) error {
 	return c.Render("index", nil)
 }
 
+type searchResultWrapper struct {
+	Query  string
+	Result []searchResult
+}
+
 func handleSearch(c gig.Context) error {
 	q, err := c.QueryString()
 	if err != nil {
@@ -45,7 +50,10 @@ func handleSearch(c gig.Context) error {
 		println(err.Error())
 		return gig.ErrPermanentFailure
 	}
-	return c.Render("search", result)
+	return c.Render("search", &searchResultWrapper{
+		Query:  q,
+		Result: result,
+	})
 }
 
 func handleShow(c gig.Context) error {

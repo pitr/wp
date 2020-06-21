@@ -1,9 +1,9 @@
-# Wikipedia Search Results
-
 => / 🏠 Home
 => /search Search
 
-{{range .}}
+# Search Results for '{{.Query}}'
+
+{{range .Result}}
 => /en/{{.Path}} {{.Name}}
 {{else}}
 Nothing found :(
