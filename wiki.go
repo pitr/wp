@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"cgt.name/pkg/go-mwclient"
@@ -193,7 +192,7 @@ func render(buf *strings.Builder, footer *footer, node *html.Node) {
 					getText(&t, node)
 					name := t.String()
 					footer.addLink(name, href)
-					buf.WriteString(name)
+					buf.WriteString(fmt.Sprintf("[%s]", name))
 				} else {
 					render(buf, footer, node.FirstChild)
 				}
@@ -249,7 +248,7 @@ func newFooter() *footer {
 }
 
 func (f *footer) addLink(name, href string) {
-	href = url.PathEscape(href)
+	href = strings.TrimSpace(href)
 	f.buf.WriteString(fmt.Sprintf("=> %s %s\n", href, name))
 }
 
