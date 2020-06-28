@@ -1,8 +1,12 @@
-.PHONY: clean run deploy build.local build.linux
+.PHONY: clean test check run build.local build.linux build.osx build.docker build.push
 
 BINARY        ?= wp
 SOURCES       = $(shell find . -name '*.go') tmpl.go
 STATICS       = $(shell find tmpl -name '*.*')
+VERSION       ?= $(shell git describe --tags --always)
+IMAGE         ?= deploy.glv.one/pitr/$(BINARY)
+TAG           ?= $(VERSION)
+DOCKERFILE    ?= Dockerfile
 BUILD_FLAGS   ?= -v
 LDFLAGS       ?= -w -s
 
@@ -13,16 +17,6 @@ clean:
 
 run: build.local
 	./build/$(BINARY)
-
-deploy: build.linux
-	scp build/linux/$(BINARY) ec2-user@$(PRODUCTION):$(BINARY)/$(BINARY)-next
-	ssh ec2-user@$(PRODUCTION) 'mv $(BINARY)/$(BINARY) $(BINARY)/$(BINARY)-old'
-	ssh ec2-user@$(PRODUCTION) 'mv $(BINARY)/$(BINARY)-next $(BINARY)/$(BINARY)'
-	ssh ec2-user@$(PRODUCTION) 'sudo systemctl restart $(BINARY)'
-
-rollback:
-	ssh ec2-user@$(PRODUCTION) 'mv $(BINARY)/$(BINARY)-old $(BINARY)/$(BINARY)'
-	ssh ec2-user@$(PRODUCTION) 'sudo systemctl restart $(BINARY)'
 
 tmpl.go: $(STATICS)
 	go run cmd/build_tmpl.go $(STATICS)
@@ -35,3 +29,9 @@ build/$(BINARY): $(SOURCES)
 
 build/linux/$(BINARY): $(SOURCES)
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build $(BUILD_FLAGS) -o build/linux/$(BINARY) -ldflags "$(LDFLAGS)" .
+
+build.docker: build.linux
+	docker build --rm -t "$(IMAGE):$(TAG)" -f $(DOCKERFILE) .
+
+build.push: build.docker
+	docker push "$(IMAGE):$(TAG)"
