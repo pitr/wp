@@ -1,2 +1,3 @@
 tmpl.go
-wp.*
+*.key
+*.crt

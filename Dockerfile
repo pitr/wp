@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 ADD build/linux/wp /
-ADD wp.crt /
-ADD wp.key /
+ADD wp-prod.crt /wp.crt
+ADD wp-prod.key /wp.key
 
 CMD ["/wp"]
