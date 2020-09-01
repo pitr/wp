@@ -1,4 +1,4 @@
-.PHONY: clean test check run build.local build.linux build.osx build.docker build.push
+.PHONY: clean test check run build.local build.linux build.osx build.docker deploy
 
 BINARY        ?= wp
 SOURCES       = $(shell find . -name '*.go') tmpl.go
@@ -33,5 +33,5 @@ build/linux/$(BINARY): $(SOURCES)
 build.docker: build.linux
 	docker build --rm -t "$(IMAGE):$(TAG)" -f $(DOCKERFILE) .
 
-build.push: build.docker
+deploy: build.docker
 	docker push "$(IMAGE):$(TAG)"
