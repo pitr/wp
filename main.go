@@ -55,7 +55,7 @@ func handleRobot(c gig.Context) error {
 }
 
 func handleHome(c gig.Context) error {
-	return c.Render("index", nil)
+	return c.Render("index", struct{ Old bool }{strings.Contains(c.RequestURI(), "wp.pitr.ca")})
 }
 
 type searchResultWrapper struct {
