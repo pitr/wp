@@ -49,9 +49,11 @@ func main() {
 	panic(g.Run("wp.crt", "wp.key"))
 }
 
+var langs = []string{"en", "ar", "de", "es", "fr", "it", "nl", "ja", "pl", "pt", "ru", "sv", "uk", "vi", "zh", "id", "ms", "zh", "bg", "ca", "cs", "da", "eo", "eu", "fa", "he", "ko", "hu", "no", "ro", "sr", "sh", "fi", "tr", "ast", "bs", "et", "el", "simple", "gl", "hr", "lv", "lt", "ml", "nn", "sk", "sl", "th"}
+
 func handleRobot(c gig.Context) error {
 	// otherwise crawler index would explode, also unnecessary traffic
-	return c.Text("User-agent: *\nAllow: /$\nDisallow: /\n")
+	return c.Text("User-agent: *\nDisallow: /search\nDisallow: /%s", strings.Join(langs, "\nDisallow: /"))
 }
 
 func handleHome(c gig.Context) error {
