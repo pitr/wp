@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"cgt.name/pkg/go-mwclient"
 	"github.com/pitr/gig"
 )
 
@@ -104,6 +105,9 @@ func handleShow(c gig.Context) error {
 	}
 
 	page, _, err := wp.GetPageByName(name)
+	if err == mwclient.ErrPageNotFound {
+		return c.NoContent(gig.StatusNotFound, err.Error())
+	}
 	if err != nil {
 		return err
 	}
