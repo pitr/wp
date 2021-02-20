@@ -1,16 +1,36 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
 	"cgt.name/pkg/go-mwclient"
+	"github.com/lightstep/otel-launcher-go/launcher"
 	"github.com/pitr/gig"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/semconv"
+	"go.opentelemetry.io/otel/trace"
+)
+
+var (
+	version = "unknown"
+	tracer  trace.Tracer
 )
 
 func main() {
+	ls := launcher.ConfigureOpentelemetry(
+		launcher.WithServiceName("wp"),
+		launcher.WithMetricsEnabled(true),
+		launcher.WithServiceVersion(version),
+		launcher.WithAccessToken(os.Getenv("LS_TOKEN")),
+	)
+	defer ls.Shutdown()
+	tracer = otel.Tracer("wp")
+
 	// preload main client
 	_, err := getClient("en")
 	if err != nil {
@@ -38,6 +58,27 @@ func main() {
 		return &cert, nil
 	}
 	g.Renderer = &Template{}
+
+	g.Use(func(f gig.HandlerFunc) gig.HandlerFunc {
+		return func(c gig.Context) error {
+			opts := trace.WithSpanKind(trace.SpanKindServer)
+			ctx, span := tracer.Start(context.Background(), c.Path(), opts)
+			span.SetAttributes(semconv.HTTPURLKey.String(c.RequestURI()))
+			c.Set("ctx", ctx)
+			defer span.End()
+
+			err := f(c)
+
+			if err != nil {
+				span.RecordError(err)
+			} else {
+				span.SetAttributes(semconv.HTTPStatusCodeKey.Int(int(c.Response().Status)))
+				span.SetAttributes(semconv.HTTPResponseContentLengthKey.Int64(int64(c.Response().Size)))
+			}
+
+			return err
+		}
+	})
 
 	g.Handle("/", handleHome)
 	g.Handle("/search", func(c gig.Context) error {
@@ -102,23 +143,25 @@ func measure(m string, f func()) {
 
 func handleShow(c gig.Context) error {
 	var (
-		lang       = c.Param("lang")
-		name       = c.Param("*")
-		wp         *mwclient.Client
-		err        error
-		page, body string
+		lang = c.Param("lang")
+		name = c.Param("*")
 	)
 
-	measure("getClient", func() {
-		wp, err = getClient(lang)
-	})
+	ctx := c.Get("ctx").(context.Context)
+
+	_, sp := tracer.Start(ctx, "getClient")
+
+	wp, err := getClient(lang)
+	sp.End()
+
 	if err != nil {
 		return err
 	}
 
-	measure("GetPageByName", func() {
-		page, _, err = wp.GetPageByName(name)
-	})
+	_, sp = tracer.Start(ctx, "getPageByName")
+	page, _, err := wp.GetPageByName(name)
+	sp.End()
+
 	if err == mwclient.ErrPageNotFound {
 		return c.NoContent(gig.StatusNotFound, err.Error())
 	}
@@ -126,9 +169,9 @@ func handleShow(c gig.Context) error {
 		return err
 	}
 
-	measure("convert", func() {
-		body = convert(page)
-	})
+	_, sp = tracer.Start(ctx, "convert")
+	body := convert(page)
+	sp.End()
 
 	return c.Render("show", &showWrapper{
 		Lang:  lang,

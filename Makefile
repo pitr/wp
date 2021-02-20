@@ -8,7 +8,7 @@ IMAGE         ?= deploy.glv.one/pitr/$(BINARY)
 TAG           ?= $(VERSION)
 DOCKERFILE    ?= Dockerfile
 BUILD_FLAGS   ?= -v
-LDFLAGS       ?= -w -s
+LDFLAGS       ?= -w -s -X main.version=$(VERSION)
 
 default: run
 
