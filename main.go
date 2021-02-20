@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"io/ioutil"
 	"strings"
+	"time"
 
 	"cgt.name/pkg/go-mwclient"
 	"github.com/pitr/gig"
@@ -93,18 +94,31 @@ type showWrapper struct {
 	Title, Body, Lang string
 }
 
+func measure(m string, f func()) {
+	t := time.Now()
+	f()
+	println(m, time.Since(t))
+}
+
 func handleShow(c gig.Context) error {
 	var (
-		lang = c.Param("lang")
-		name = c.Param("*")
+		lang       = c.Param("lang")
+		name       = c.Param("*")
+		wp         *mwclient.Client
+		err        error
+		page, body string
 	)
 
-	wp, err := getClient(lang)
+	measure("getClient", func() {
+		wp, err = getClient(lang)
+	})
 	if err != nil {
 		return err
 	}
 
-	page, _, err := wp.GetPageByName(name)
+	measure("GetPageByName", func() {
+		page, _, err = wp.GetPageByName(name)
+	})
 	if err == mwclient.ErrPageNotFound {
 		return c.NoContent(gig.StatusNotFound, err.Error())
 	}
@@ -112,9 +126,13 @@ func handleShow(c gig.Context) error {
 		return err
 	}
 
+	measure("convert", func() {
+		body = convert(page)
+	})
+
 	return c.Render("show", &showWrapper{
 		Lang:  lang,
 		Title: strings.ReplaceAll(name, "_", " "),
-		Body:  convert(page),
+		Body:  body,
 	})
 }
