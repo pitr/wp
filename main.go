@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -12,6 +14,7 @@ import (
 	"github.com/lightstep/otel-launcher-go/launcher"
 	"github.com/pitr/gig"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/semconv"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -37,7 +40,7 @@ func main() {
 		panic(err)
 	}
 
-	g := gig.Default()
+	g := gig.New()
 
 	g.TLSConfig.GetCertificate = func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		if !strings.Contains(hello.ServerName, ".glv.one") {
@@ -59,7 +62,7 @@ func main() {
 	}
 	g.Renderer = &Template{}
 
-	g.Use(func(f gig.HandlerFunc) gig.HandlerFunc {
+	g.Use(gig.Logger(), func(f gig.HandlerFunc) gig.HandlerFunc {
 		return func(c gig.Context) error {
 			opts := trace.WithSpanKind(trace.SpanKindServer)
 			ctx, span := tracer.Start(context.Background(), c.Path(), opts)
@@ -67,10 +70,27 @@ func main() {
 			c.Set("ctx", ctx)
 			defer span.End()
 
+			defer func() {
+				if r := recover(); r != nil {
+					err, ok := r.(error)
+					if !ok {
+						err = fmt.Errorf("%v", r)
+					}
+
+					stack := make([]byte, 4<<10)
+					length := runtime.Stack(stack, true)
+					fmt.Printf("[PANIC RECOVER] %v %s\n", err, stack[:length])
+
+					c.Error(err)
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
+				}
+			}()
 			err := f(c)
 
 			if err != nil {
 				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 			} else {
 				span.SetAttributes(semconv.HTTPStatusCodeKey.Int(int(c.Response().Status)))
 				span.SetAttributes(semconv.HTTPResponseContentLengthKey.Int64(int64(c.Response().Size)))
@@ -168,6 +188,8 @@ func handleShow(c gig.Context) error {
 	if err != nil {
 		return err
 	}
+
+	println(page)
 
 	_, sp = tracer.Start(ctx, "convert")
 	body := convert(page)
