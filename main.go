@@ -189,8 +189,6 @@ func handleShow(c gig.Context) error {
 		return err
 	}
 
-	println(page)
-
 	_, sp = tracer.Start(ctx, "convert")
 	body := convert(page)
 	sp.End()
