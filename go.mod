@@ -6,11 +6,10 @@ require (
 	cgt.name/pkg/go-mwclient v1.2.0
 	github.com/antonholmquist/jason v1.0.0
 	github.com/d4l3k/wikigopher v0.0.0-20190625000320-95ca9e7b9793
-	github.com/lightstep/otel-launcher-go v0.16.1
-	github.com/microcosm-cc/bluemonday v1.0.4 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/microcosm-cc/bluemonday v1.0.14 // indirect
 	github.com/mrjones/oauth v0.0.0-20190623134757-126b35219450 // indirect
 	github.com/pitr/gig v0.9.8-0.20201224232658-5ede65444165
-	github.com/valyala/fasttemplate v1.2.1 // indirect
-	go.opentelemetry.io/otel v0.16.0
-	golang.org/x/net v0.0.0-20210119194325-5f4716e94777
+	github.com/pkg/errors v0.9.1 // indirect
+	golang.org/x/net v0.0.0-20210610132358-84b48f89b13b
 )

@@ -1,10 +1,5 @@
 # Wikipedia proxy
 
-{{if .Old}}
-This capsule has moved to wp.glv.one:
-=> gemini://wp.glv.one New capsule
-{{end}}
-
 => https://github.com/pitr/wp Source code for this site
 
 => /en/ English

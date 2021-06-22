@@ -1,0 +1,15 @@
+# Wikipedia proxy
+
+Hi. Due to limited resources and inefficient code on this capsule, I am shutting down this proxy. Please consider using another proxy:
+
+=> gemini://vault.transjovian.org/
+
+For more information on this decision, see my post:
+
+=> https://pitr.ca/2021-05-29-gemini-ecosystem Scroll to "Wikipedia Proxy" section.
+
+If you can figure out the issue of high memory and high cpu, feel free to send me the fix, or run it yourself.
+
+=> https://github.com/pitr/wp Source code for this site
+
+Thank you for using Wikipedia Proxy on GLV.one
